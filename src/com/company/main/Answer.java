@@ -1,9 +1,6 @@
 package com.company.main;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -26,6 +23,12 @@ public class Answer {
         next_id++;
     }
 
+    public Answer (int id, String answer, int question_id) {
+        this.id = id;
+        this.answer = answer;
+        this.question_id = question_id;
+    }
+
     public int getId() {
         return id;
     }
@@ -38,16 +41,25 @@ public class Answer {
         return answer;
     }
 
-    public void setQuestion_id(int question_id) {
-        this.question_id = question_id;
-    }
-
-    public void setAnswer(String answer) {
-        this.answer = answer;
-    }
-
     public ArrayList<Answer> getAnswers() {
-        return answers;
+        String file = "./data/answers.csv";
+        String line = null;
+
+        try {
+            FileReader fileReader = new FileReader(file);
+            BufferedReader bufferedReader = new BufferedReader(fileReader);
+
+            while ((line = bufferedReader.readLine()) != null) {
+                String[] str = line.split("::");
+                int id = Integer.parseInt(str[0]);
+                String answer = str[1];
+                int question_id = Integer.parseInt(str[2]);
+                this.answers.add(new Answer(id, answer, question_id));
+            }
+        } catch (IOException e) {
+            System.out.println("Error: " + e);
+        }
+        return this.answers;
     }
 
     @Override
@@ -55,7 +67,7 @@ public class Answer {
         return "id: " + id + ", question_id: " + question_id + ", answer: " + answer + ".";
     }
 
-    public void addAnswers (Question q) {
+    public ArrayList<Answer> addAnswers (Question q) {
         Scanner in = new Scanner(System.in);
 
         System.out.println("Type the answer: ");
@@ -69,8 +81,6 @@ public class Answer {
             String res = in.nextLine();
             if (res.equals("y")) {
                 q.setAnswer_id(answer.getId());
-            } else {
-                addAnswers(q);
             }
         }
         System.out.println("Add another answer? (y/n): ");
@@ -78,28 +88,12 @@ public class Answer {
 
         if (anotherAnswer.equals("y")) {
             addAnswers(q);
-        } else {
-            try {
-                File fileAnswer = new File("./data/answers.csv");
-                FileWriter fw = new FileWriter(fileAnswer);
-                BufferedWriter bw = new BufferedWriter(fw);
-                String separator = "::";
-
-                for (Answer e : this.answers) {
-                    bw.write(e.getId() + separator + e.getAnswer() + separator + e.getQuestion_id());
-                    bw.newLine();
-                    System.out.println("Added: " + e.toString());
-                }
-                bw.close();
-                fw.close();
-            } catch (IOException e) {
-                System.out.println("There was a problem with writing the file questions.csv");
-            }
         }
+        return this.answers;
     }
 
     public void listOfAnswers () {
-        for (Answer answer : this.answers) {
+        for (Answer answer : this.getAnswers()) {
             System.out.println(answer.toString());
         }
     }
